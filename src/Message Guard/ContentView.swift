@@ -69,6 +69,9 @@ struct AboutView: View {
                             Label("Messages containing IP addresses", systemImage: "number")
                                 .padding(.bottom, 2)
                             Label("Messages from full phone numbers (as opposed to SMS shortcodes) which mention popular banks", systemImage: "building.columns")
+                                .padding(.bottom, 2)
+                            Label("Messages containing common phishing ohrases", systemImage: "exclamationmark.bubble")
+                                .padding(.bottom, 2)
                         }
                         .padding(.all)
                     }

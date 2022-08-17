@@ -41,26 +41,34 @@ extension MessageFilterExtension: ILMessageFilterQueryHandling {
             return .none
         }
         
+        let sortedSender = String(messageSender.lowercased().sorted())
+        let ipRegex = #"\b(?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9]))\b"#
+
         // Filter all messages from email addresses
         if (messageSender.lowercased().contains("@")) {
             return .junk
         }
         
         // Filte all messages containing URLs using risky TLDs
-        if (hasAbuseiveTld(messageBody: messageBody.lowercased())) {
+        if (hasAbuseiveTld(messageBody: messageBody)) {
             return .junk
         }
         
         // Filter all messages containing IPv4 addresses
-        let ipRegex = #"\b(?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9]))\b"#
         if (messageBody.range(of: ipRegex, options: .regularExpression) != nil) {
             return .junk
         }
         
-        // Filter messages from full phone numbers which mention banks
-        let sortedSender = String(messageSender.lowercased().sorted())
+        // Filter messages from 7+ digit phone numbers which mention banks
         if (sortedSender.range(of: #"\d{7,}"#, options: .regularExpression) != nil) {
-            if (hasBankName(messageBody: messageBody.lowercased())) {
+            if (hasBankName(messageBody: messageBody)) {
+                return .junk
+            }
+        }
+        
+        // Filter messages from 7+ digit phone numbers which contain common phishing phrases
+        if (sortedSender.range(of: #"\d{7,}"#, options: .regularExpression) != nil) {
+            if (hasPhishingPhrase(messageBody: messageBody)) {
                 return .junk
             }
         }
@@ -145,8 +153,10 @@ func hasAbuseiveTld(messageBody: String) -> Bool {
         #"\b\.work\b"#,
         #"\b\.xyz\b"#,
     ]
+    
+    let filteredMessageBody = messageBody.lowercased()
     for abusiveTld in abusiveTlds {
-        if (messageBody.range(of: abusiveTld, options: .regularExpression) != nil) {
+        if (filteredMessageBody.range(of: abusiveTld, options: .regularExpression) != nil) {
             return true
         }
     }
@@ -157,56 +167,54 @@ func hasBankName(messageBody: String) -> Bool {
     let bankNames = [
         #"\bafcu\b"#,
         #"\balliant\b"#,
-        #"\bally financial\b"#,
-        #"\bamerica first\b"#,
-        #"\bamerican express\b"#,
+        #"\ballyfinancial\b"#,
+        #"\bamericafirst\b"#,
+        #"\bamericanexpress\b"#,
         #"\bamericu\b"#,
         #"\bameriprise\b"#,
         #"\bameris\b"#,
         #"\bamex\b"#,
         #"\barvest\b"#,
-        #"\batlantic union bank\b"#,
-        #"\bbanc-corp\b"#,
+        #"\batlanticunionbank\b"#,
+        #"\bbanccorp\b"#,
         #"\bbancorp\b"#,
         #"\bbancshares\b"#,
-        #"\bbank of america\b"#,
-        #"\bbank of hawaii\b"#,
-        #"\bbank of the west\b"#,
-        #"\bbank ozk\b"#,
+        #"\bbankof\b"#,
+        #"\bbankozk\b"#,
         #"\bbankunited\b"#,
         #"\bbarclays\b"#,
-        #"\bbci financial\b"#,
+        #"\bbcifinancial\b"#,
         #"\bbecu\b"#,
-        #"\bbmo harris\b"#,
+        #"\bbmoharris\b"#,
         #"\bbnp\b"#,
         #"\bbofa\b"#,
-        #"\bbok financial\b"#,
-        #"\bcadence bank\b"#,
-        #"\bcapital one\b"#,
-        #"\bcathay bank\b"#,
-        #"\bcentral bancompany\b"#,
+        #"\bbokfinancial\b"#,
+        #"\bcadencebank\b"#,
+        #"\bcapitalone\b"#,
+        #"\bcathaybank\b"#,
+        #"\bcentralbancompany\b"#,
         #"\bchase\b"#,
-        #"\bcibc bank\b"#,
-        #"\bcit group\b"#,
+        #"\bcibcbank\b"#,
+        #"\bcitgroup\b"#,
         #"\bciti\b"#,
-        #"\bcitizens financial\b"#,
-        #"\bcity national bank\b"#,
+        #"\bcitizensfinancial\b"#,
+        #"\bcitynationalbank\b"#,
         #"\bcomerica\b"#,
-        #"\bcommerce bancshares\b"#,
-        #"\bcredit suisse\b"#,
-        #"\bcredit union\b"#,
-        #"\bdeutsche bank\b"#,
+        #"\bcommercebancshares\b"#,
+        #"\bcreditsuisse\b"#,
+        #"\bcreditunion\b"#,
+        #"\bdeutschebank\b"#,
         #"\bdiscover\b"#,
-        #"\beast west bank\b"#,
+        #"\beastwestbank\b"#,
         #"\bfargo\b"#,
-        #"\bfifth third\b"#,
-        #"\bfirst citizens\b"#,
-        #"\bfirst hawaiian bank\b"#,
-        #"\bfirst horizon\b"#,
-        #"\bfirst interstate\b"#,
-        #"\bfirst midwest bank\b"#,
-        #"\bfirst national\b"#,
-        #"\bfirst republic bank\b"#,
+        #"\bfifththird\b"#,
+        #"\bfirstcitizens\b"#,
+        #"\bfirsthawaiian bank\b"#,
+        #"\bfirsthorizon\b"#,
+        #"\bfirstinterstate\b"#,
+        #"\bfirstmidwest bank\b"#,
+        #"\bfirstnational\b"#,
+        #"\bfirstrepublic bank\b"#,
         #"\bfirstbank\b"#,
         #"\bflagstar\b"#,
         #"\bfnb\b"#,
@@ -214,31 +222,31 @@ func hasBankName(messageBody: String) -> Bool {
         #"\bhsbc\b"#,
         #"\binvestors bank\b"#,
         #"\bjpmorgan\b"#,
-        #"\bkey bank\b"#,
+        #"\bkeybank\b"#,
         #"\bkeycorp\b"#,
-        #"\bm&t bank\b"#,
-        #"\bmaster card\b"#,
-        #"\bmidfirst bank\b"#,
-        #"\bmufg union\b"#,
-        #"\bnavy federal\b"#,
+        #"\bm&tbank\b"#,
+        #"\bmastercard\b"#,
+        #"\bmidfirstbank\b"#,
+        #"\bmufgunion\b"#,
+        #"\bnavyfederal\b"#,
         #"\bncfu\b"#,
-        #"\bnew york community bank\b"#,
-        #"\bnorthern trust\b"#,
+        #"\bnewyorkcommunitybank\b"#,
+        #"\bnortherntrust\b"#,
         #"\bnycb\b"#,
-        #"\bold national bank\b"#,
-        #"\bpacific premier\b"#,
+        #"\boldnationalbank\b"#,
+        #"\bpacificpremier\b"#,
         #"\bpacwest\b"#,
         #"\bpaypal\b"#,
-        #"\bpeople's united\b"#,
-        #"\bpinnacle financial\b"#,
+        #"\bpeoplesunited\b"#,
+        #"\bpinnaclefinancial\b"#,
         #"\bpnc\b"#,
-        #"\brbc bank\b"#,
-        #"\bregions bank\b"#,
-        #"\bregions financial\b"#,
-        #"\bsantander bank\b"#,
+        #"\brbcbank\b"#,
+        #"\bregionsbank\b"#,
+        #"\bregionsfinancial\b"#,
+        #"\bsantanderbank\b"#,
         #"\bschwab\b"#,
-        #"\bsignature bank\b"#,
-        #"\bsimmons bank\b"#,
+        #"\bsignaturebank\b"#,
+        #"\bsimmonsbank\b"#,
         #"\bsmbc\b"#,
         #"\bsterling\b"#,
         #"\bstifel\b"#,
@@ -246,27 +254,90 @@ func hasBankName(messageBody: String) -> Bool {
         #"\bsvb\b"#,
         #"\bsynchrony\b"#,
         #"\bsynovus\b"#,
-        #"\btd bank\b"#,
-        #"\btexas capital bank\b"#,
+        #"\btdbank\b"#,
+        #"\btexascapitalbank\b"#,
         #"\btiaa\b"#,
         #"\btruist\b"#,
         #"\bubs\b"#,
-        #"\bumb financial\b"#,
+        #"\bumbfinancial\b"#,
         #"\bumpqua\b"#,
-        #"\bunited bank\b"#,
-        #"\bunited community bank\b"#,
-        #"\bus bank\b"#,
+        #"\bunitedbank\b"#,
+        #"\bunitedcommunitybank\b"#,
+        #"\busbank\b"#,
         #"\busaa\b"#,
         #"\bvisa\b"#,
-        #"\bwashington federal\b"#,
-        #"\bwebster bank\b"#,
+        #"\bwashingtonfederal\b"#,
+        #"\bwebsterbank\b"#,
         #"\bwells\b"#,
-        #"\bwestern alliance bank\b"#,
+        #"\bwesternalliancebank\b"#,
         #"\bwintrust\b"#,
-        #"\bzions bancorporation\b"#,
+        #"\bzionsbancorporation\b"#,
     ]
+    
+    let filteredMessageBody = messageBody.lowercased().filter("abcdefghijklmnopqrstuvwxyz0123456789".contains)
     for bankName in bankNames {
-        if (messageBody.range(of: bankName, options: .regularExpression) != nil) {
+        if (filteredMessageBody.range(of: bankName, options: .regularExpression) != nil) {
+            return true
+        }
+    }
+    return false
+}
+
+func hasPhishingPhrase(messageBody: String) -> Bool {
+    let phishingPhrases = [
+        #"\bfreepiano\b"#,
+        #"\byourorderhasbeen\b"#,
+        #"\bcontactcustomercare\b"#,
+        #"\bcontactcustomersupport\b"#,
+        #"\bifyouwishtocancel\b"#,
+        #"\bpleasecall\b"#,
+        #"\bdearcustomer\b"#,
+        #"\byouraccount\b"#,
+        #"\baprize\b"#,
+        #"\byouwon\b"#,
+        #"\byouvewon\b"#,
+        #"\bgiftcard\b"#,
+        #"\bgiftcertificate\b"#,
+        #"\byourcard\b"#,
+        #"\bcardislocked\b"#,
+        #"\btemporarilylocked\b"#,
+        #"\baccfrozen\b"#,
+        #"\baccountfrozen\b"#,
+        #"\bcardalert\b"#,
+        #"\btaxrefund\b"#,
+        #"\btaxreturn\b"#,
+        #"\brefunding\b"#,
+        #"\byourrefund\b"#,
+        #"\bbankaccount\b"#,
+        #"\bppackage\b"#,
+        #"\bfedex\b"#,
+        #"\bups\b"#,
+        #"\bdhl\b"#,
+        #"\bdelivery\b"#,
+        #"\bicloudid\b"#,
+        #"\bbitcoin\b"#,
+        #"\bconfirmtransaction\b"#,
+        #"\bbailmoney\b"#,
+        #"\bwesternunion\b"#,
+        #"\barrestwarrant\b"#,
+        #"\blawsuitagainst\b"#,
+        #"\bwarrantagainst\b"#,
+        #"\bgooglesecurity\b"#,
+        #"\bapplesecurity\b"#,
+        #"\bamazonsecurity\b"#,
+        #"\bunusualactivity\b"#,
+        #"\bunusualsignin\b"#,
+        #"\bunusuallogin\b"#,
+        #"\brandomlypicked\b"#,
+        #"\brandomlyselected\b"#,
+        #"\bwinner\b"#,
+        #"\bsweepstake\b"#,
+        #"\bpayrollproviders\b"#,
+    ]
+    
+    let filteredMessageBody = messageBody.lowercased().filter("abcdefghijklmnopqrstuvwxyz".contains)
+    for phishingPhrase in phishingPhrases {
+        if (filteredMessageBody.range(of: phishingPhrase, options: .regularExpression) != nil) {
             return true
         }
     }

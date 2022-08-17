@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="256" height="256" src="/src/art/messageguard-transparent-256.png" alt="Message Guard Logo">
+  <img width="256" height="256" src="/art/messageguard-transparent-256.png" alt="Message Guard Logo">
 </p>
 
 # Message Guard

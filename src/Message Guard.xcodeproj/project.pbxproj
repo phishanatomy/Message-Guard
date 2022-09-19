@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		AB6F664727B67941001DBA61 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABF78D3A27B1FB270002B523 /* ContentView.swift */; };
+		ABA0B77128D2FE620072E902 /* MessageFilterExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABF78D6827B1FBD70002B523 /* MessageFilterExtension.swift */; };
 		ABF78D3927B1FB270002B523 /* Message_GuardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABF78D3827B1FB270002B523 /* Message_GuardApp.swift */; };
 		ABF78D3D27B1FB2D0002B523 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ABF78D3C27B1FB2D0002B523 /* Assets.xcassets */; };
 		ABF78D4027B1FB2D0002B523 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ABF78D3F27B1FB2D0002B523 /* Preview Assets.xcassets */; };
@@ -333,6 +334,7 @@
 			files = (
 				AB6F664727B67941001DBA61 /* ContentView.swift in Sources */,
 				ABF78D3927B1FB270002B523 /* Message_GuardApp.swift in Sources */,
+				ABA0B77128D2FE620072E902 /* MessageFilterExtension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
